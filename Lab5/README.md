@@ -8,13 +8,13 @@ identifier hashing, ward tokens and ledger export. Records are held in memory.
 Python 3.10 or newer must be available on PATH. From the project folder:
 
 ```bat
-system.bat
-run.bat
+python -m venv venv
+venv\Scripts\python.exe -m pip install -r requirements.txt
+venv\Scripts\python.exe hospital_patient_system.py
 ```
 
-`system.bat` reuses the existing `venv` or creates it, then installs the pinned
-analysis dependencies in `requirements.txt`. `run.bat` uses that environment
-without requiring activation. The demo requires no interactive input.
+If `venv` already exists, reuse it and skip the first command. Dependencies are
+pinned in `requirements.txt`. The demo requires no interactive input.
 It writes an ignored `patient_records.txt` ledger in the project folder.
 
 For other platforms, the equivalent commands are:
@@ -49,7 +49,7 @@ exercise normal operations and unsafe-input boundaries.
 - `reports/before/*_report.txt`: reports against the original `51ec8b0` script.
 - `pylint_report.txt`, `bandit_report.txt`, `flake8_report.txt`: final reports.
 - `test_hospital_patient_system.py`: regression checks using standard unittest.
-- `requirements.txt`, `system.bat`, `run.bat`: reproducible setup and execution.
+- `requirements.txt`: pinned analysis dependencies for reproducible setup.
 
 Treatment formulas permit numbers, `base_bill`, parentheses, unary signs and
 `+ - * /`, with a 256-character limit. Calls, attributes and other syntax are

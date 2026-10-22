@@ -4,3 +4,5 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 patient_records.txt
+run.bat
+system.bat
