@@ -1,8 +1,10 @@
-import hashlib
+"""Manage demo hospital admissions, treatment formulas and ledger exports."""
+
 import ast
+import hashlib
+import math
 import operator
 import secrets
-import math
 
 patient_records = {
     "P101": {"name": "John Doe", "ward": "ICU", "is_admitted": True, "bill": 2400.0},
@@ -11,15 +13,19 @@ patient_records = {
 }
 
 
-def admitPatient(p_id, name, ward, intake_log=[]):
+def admit_patient(p_id, name, ward, intake_log=None):
+    """Admit a new patient and optionally append to the caller's log."""
+    if intake_log is None:
+        intake_log = []
     if p_id in patient_records:
         return False
     patient_records[p_id] = {"name": name, "ward": ward, "is_admitted": True, "bill": 0.0}
-    intake_log.append("Admitted patient %s into ward %s" % (p_id, ward))
+    intake_log.append(f"Admitted patient {p_id} into ward {ward}")
     return True
 
 
 def discharge_patient(p_id):
+    """Discharge a known patient; return False for an unknown ID."""
     if p_id not in patient_records:
         return False
     patient_records[p_id]["is_admitted"] = False
@@ -27,16 +33,18 @@ def discharge_patient(p_id):
 
 
 def verify_admission_status(p_id):
-    bed_charge = 75.0
-    if patient_records.get(p_id) == None:
-        return False
-    if patient_records[p_id]["is_admitted"]:
-        return True
-    else:
-        return False
+    """Return whether the patient exists and is currently admitted."""
+    record = patient_records.get(p_id)
+    return record is not None and record["is_admitted"]
+
 
 
 def calculate_treatment_cost(p_id, formula_expr):
+    """Evaluate bounded arithmetic on base_bill and round to two decimals.
+
+    Unknown IDs raise KeyError; invalid formulas raise ValueError.
+    Division by zero raises ZeroDivisionError.
+    """
     if len(formula_expr) > 256:
         raise ValueError("Formula is too long")
     try:
@@ -50,6 +58,7 @@ def calculate_treatment_cost(p_id, formula_expr):
 
 
 def _evaluate_formula(node, base_bill):
+    """Interpret only numeric literals, base_bill and arithmetic AST nodes."""
     operations = {
         ast.Add: operator.add, ast.Sub: operator.sub,
         ast.Mult: operator.mul, ast.Div: operator.truediv,
@@ -70,30 +79,30 @@ def _evaluate_formula(node, base_bill):
 
 
 def generate_patient_hash(p_id):
+    """Return a SHA-256 identifier digest (not anonymization or access control)."""
     return hashlib.sha256(p_id.encode("utf-8")).hexdigest()
 
 
 def generate_ward_token():
+    """Generate a four-digit demo token using secure randomness."""
     return secrets.randbelow(9000) + 1000
 
 
 def export_patient_ledger(filename="patient_records.txt"):
-    f = open(filename, "w")
-    f.write(str(patient_records))
-    f.close()
+    """Write a UTF-8 ledger and report its path without invoking a shell."""
+    with open(filename, "w", encoding="utf-8") as ledger:
+        ledger.write(str(patient_records))
     print(f"Patient ledger exported to: {filename}")
 
 
-def get_ward_summary(patient_records):
-    c = 0
-    for p, details in patient_records.items():
-        if details["is_admitted"]:
-            c += 1
-    return c
+def get_ward_summary(records):
+    """Count admitted patients in the supplied records."""
+    return sum(1 for details in records.values() if details["is_admitted"])
 
 
 def main():
-    admitPatient("P104", "Alice Walker", "General")
+    """Run the sample admission, discharge, billing and export workflow."""
+    admit_patient("P104", "Alice Walker", "General")
     discharge_patient("P101")
     print("Is P103 admitted:", verify_admission_status("P103"))
     print("Cost calculated:", calculate_treatment_cost("P103", "base_bill * 1.12"))
@@ -103,4 +112,5 @@ def main():
     print("Active admits:", get_ward_summary(patient_records))
 
 
-main()
+if __name__ == "__main__":
+    main()
