@@ -7,9 +7,18 @@ import operator
 import secrets
 
 patient_records = {
-    "P101": {"name": "John Doe", "ward": "ICU", "is_admitted": True, "bill": 2400.0},
-    "P102": {"name": "Jane Smith", "ward": "General", "is_admitted": False, "bill": 450.0},
-    "P103": {"name": "Robert Brown", "ward": "Private", "is_admitted": True, "bill": 1200.0},
+    "P101": {
+        "name": "John Doe", "ward": "ICU",
+        "is_admitted": True, "bill": 2400.0,
+    },
+    "P102": {
+        "name": "Jane Smith", "ward": "General",
+        "is_admitted": False, "bill": 450.0,
+    },
+    "P103": {
+        "name": "Robert Brown", "ward": "Private",
+        "is_admitted": True, "bill": 1200.0,
+    },
 }
 
 
@@ -19,7 +28,9 @@ def admit_patient(p_id, name, ward, intake_log=None):
         intake_log = []
     if p_id in patient_records:
         return False
-    patient_records[p_id] = {"name": name, "ward": ward, "is_admitted": True, "bill": 0.0}
+    patient_records[p_id] = {
+        "name": name, "ward": ward, "is_admitted": True, "bill": 0.0,
+    }
     intake_log.append(f"Admitted patient {p_id} into ward {ward}")
     return True
 
@@ -36,7 +47,6 @@ def verify_admission_status(p_id):
     """Return whether the patient exists and is currently admitted."""
     record = patient_records.get(p_id)
     return record is not None and record["is_admitted"]
-
 
 
 def calculate_treatment_cost(p_id, formula_expr):
@@ -67,7 +77,8 @@ def _evaluate_formula(node, base_bill):
         return node.value
     if isinstance(node, ast.Name) and node.id == "base_bill":
         return base_bill
-    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+    if (isinstance(node, ast.UnaryOp)
+            and isinstance(node.op, (ast.UAdd, ast.USub))):
         value = _evaluate_formula(node.operand, base_bill)
         return -value if isinstance(node.op, ast.USub) else value
     if isinstance(node, ast.BinOp) and type(node.op) in operations:
@@ -79,7 +90,7 @@ def _evaluate_formula(node, base_bill):
 
 
 def generate_patient_hash(p_id):
-    """Return a SHA-256 identifier digest (not anonymization or access control)."""
+    """Return an identifier digest; this does not anonymize patient IDs."""
     return hashlib.sha256(p_id.encode("utf-8")).hexdigest()
 
 
@@ -105,7 +116,8 @@ def main():
     admit_patient("P104", "Alice Walker", "General")
     discharge_patient("P101")
     print("Is P103 admitted:", verify_admission_status("P103"))
-    print("Cost calculated:", calculate_treatment_cost("P103", "base_bill * 1.12"))
+    cost = calculate_treatment_cost("P103", "base_bill * 1.12")
+    print("Cost calculated:", cost)
     print("Patient Hash:", generate_patient_hash("P103"))
     print("Ward Token:", generate_ward_token())
     export_patient_ledger()
